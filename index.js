@@ -6,7 +6,8 @@ const cors = require('cors');
 app.use(cors());
 
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001
+
 
 app.use(express.json());
 app.use(morgan('tiny'));
@@ -23,7 +24,9 @@ const persons = [
     { id: 4, name: 'Mary Poppendieck', number: '39-23-6423122' },
   ];
 
-
+app.get('/', (req, res) => {
+    res.send('<h1>Phonebakend!</h1>')
+})
 
 app.get('/api/persons', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
