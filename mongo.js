@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
-const url =
-  `mongodb+srv://123456:654123@cluster0.5vhtud0.mongodb.net/
-  ?retryWrites=true&w=majority`
+const url = process.env.MONGODB_URI;
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
     console.log('Connected to MongoDB');
