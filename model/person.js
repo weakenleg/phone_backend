@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const personSchema = new mongoose.Schema({
   name: {
@@ -14,7 +14,7 @@ const personSchema = new mongoose.Schema({
       validator: function (value) {
         // Custom validation function for the phone number
         // Regular expression pattern to match the desired format: XX-XXXXXXXX
-        return /^\d{2,3}-\d+$/.test(value);
+        return /^\d{2,3}-\d+$/.test(value)
       },
       message: 'Invalid phone number format. Please use the format XX-XXXXXXXX.',
     },
@@ -23,11 +23,11 @@ const personSchema = new mongoose.Schema({
     type: String,
     required: true
   }
-});
+})
 
-const Person = mongoose.model('Person', personSchema);
+const Person = mongoose.model('Person', personSchema)
 
-module.exports = Person;
+module.exports = Person
 
 
 

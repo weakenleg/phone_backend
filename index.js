@@ -50,18 +50,18 @@
 //     res.setHeader('Content-Type', 'application/json');
 //     res.json(persons);
 // });
-  
+
 
 
 // app.get('/info', (request, response) => {
 //     const currentTime = new Date();
 //     const entryCount = persons.length;
-  
+
 //     const infoHtml = `
 //       <p>Phonebook has info for ${entryCount} people</p>
 //       <p>${currentTime}</p>
 //     `;
-    
+
 //     response.send(infoHtml);
 //   });
 // app.get('/api/persons/:id', (request, response) => {
@@ -101,10 +101,10 @@
 //   }
 
 //   // Check if name already exists in the phonebook
-  // const existingPerson = persons.find((person) => person.name === name);
-  // if (existingPerson) {
-  //   return response.status(400).json({ error: 'name must be unique' });
-  // }
+// const existingPerson = persons.find((person) => person.name === name);
+// if (existingPerson) {
+//   return response.status(400).json({ error: 'name must be unique' });
+// }
 
 //   const newPerson = {
 //     id: Math.floor(Math.random() * 1), // Generate a random ID
@@ -117,53 +117,53 @@
 
 //   response.status(200).json(persons);
 // });
-  
 
-  
+
+
 // app.use(unknownEndpoint)
 
 // const PORT = 3001
 // app.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`)
 // })
-const express = require('express');
-const app = express();
-const morgan = require('morgan');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const Person = require('./model/person');
-require('dotenv').config();
+const express = require('express')
+const app = express()
+const morgan = require('morgan')
+const cors = require('cors')
+const mongoose = require('mongoose')
+const Person = require('./model/person')
+require('dotenv').config()
 
-const { Types } = mongoose;
+// const { Types } = mongoose
 
-app.use(cors());
-app.use(express.static('build'));
-app.use(express.json());
-app.use(morgan('tiny'));
+app.use(cors())
+app.use(express.static('build'))
+app.use(express.json())
+app.use(morgan('tiny'))
 
-const url = process.env.MONGODB_URI;
+const url = process.env.MONGODB_URI
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
-    console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB')
   })
   .catch((error) => {
-    console.log('Error connecting to MongoDB:', error.message);
-  });
+    console.log('Error connecting to MongoDB:', error.message)
+  })
 
 app.get('/', (req, res) => {
-  res.send('<h1>Phonebakend!</h1>');
-});
+  res.send('<h1>Phonebakend!</h1>')
+})
 
 app.get('/api/persons', (req, res) => {
   Person.find({})
     .then((persons) => {
-      res.json(persons);
+      res.json(persons)
     })
     .catch((error) => {
-      console.log('Error fetching persons:', error.message);
-      res.status(500).send('Internal Server Error');
-    });
-});
+      console.log('Error fetching persons:', error.message)
+      res.status(500).send('Internal Server Error')
+    })
+})
 
 app.get('/info', (req, res, next) => {
   Person.countDocuments({})
@@ -171,62 +171,62 @@ app.get('/info', (req, res, next) => {
       const infoHtml = `
         <p>Phonebook has info for ${count} people</p>
         <p>${new Date()}</p>
-      `;
-      res.send(infoHtml);
+      `
+      res.send(infoHtml)
     })
-    .catch(next);
-});
+    .catch(next)
+})
 
 app.get('/api/persons/:id', (req, res, next) => {
-  const id = req.params.id;
-  const _id = req.params._id;
+  const id = req.params.id
+  const _id = req.params._id
   console.log(_id)
   console.log(id)
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: 'Invalid ID' });
+    return res.status(400).json({ error: 'Invalid ID' })
   }
 
   Person.findOne({ id }) // Use findOne instead of findById
     .then((person) => {
       if (person) {
-        res.json(person);
+        res.json(person)
       } else {
-        res.status(404).json({ error: 'Person not found' });
+        res.status(404).json({ error: 'Person not found' })
       }
     })
-    .catch(next);
-});
+    .catch(next)
+})
 
 
 app.delete('/api/persons/:id', (req, res) => {
-  const id = req.params.id;
-  const _id = req.params._id;
+  const id = req.params.id
+  const _id = req.params._id
   console.log(_id)
   console.log(id)
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: 'Invalid ID' });
+    return res.status(400).json({ error: 'Invalid ID' })
   }
 
   Person.findOneAndRemove(id)
     .then(() => {
-      res.status(204).end();
+      res.status(204).end()
     })
     .catch((error) => {
-      console.log('Error deleting person:', error.message);
-      res.status(500).send('Internal Server Error');
-    });
-});
+      console.log('Error deleting person:', error.message)
+      res.status(500).send('Internal Server Error')
+    })
+})
 
 
 app.put('/api/persons/:id', (req, res, next) => {
-  const id = req.params.id;
-  console.log('ID:', id); // Print the ID to the console
-  const { name, number } = req.body;
+  const id = req.params.id
+  console.log('ID:', id) // Print the ID to the console
+  const { name, number } = req.body
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: 'Invalid ID' });
+    return res.status(400).json({ error: 'Invalid ID' })
   }
   // const existingPerson = persons.find((person) => person.name === name);
   // if (existingPerson) {
@@ -241,54 +241,54 @@ app.put('/api/persons/:id', (req, res, next) => {
     .then(updatedPerson => {
       res.json(updatedPerson)
     })
-    .catch(next);
-});
+    .catch(next)
+})
 
 app.post('/api/persons', (req, res) => {
-  const { name, number } = req.body;
+  const { name, number } = req.body
 
   if (!name || !number) {
-    return res.status(400).json({ error: 'Name or number is missing' });
+    return res.status(400).json({ error: 'Name or number is missing' })
   }
 
   const newPerson = new Person({
     id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
     name,
     number,
-  });
+  })
 
   newPerson.save()
     .then((savedPerson) => {
-      res.json(savedPerson);
+      res.json(savedPerson)
     })
     .catch((error) => {
-      console.log('Error saving person:', error); // Print the error to the console
-      res.status(500).send('Internal Server Error');
-    });
-});
+      console.log('Error saving person:', error) // Print the error to the console
+      res.status(500).send('Internal Server Error')
+    })
+})
 
 
 const unknownEndpoint = (req, res) => {
-  res.status(404).send({ error: 'Unknown endpoint' });
-};
+  res.status(404).send({ error: 'Unknown endpoint' })
+}
 
-app.use(unknownEndpoint);
+app.use(unknownEndpoint)
 
 const errorHandler = (error, req, res, next) => {
-  console.error(error.message);
+  console.error(error.message)
 
   if (error.name === 'CastError') {
-    return res.status(400).json({ error: 'Malformatted ID' });
+    return res.status(400).json({ error: 'Malformatted ID' })
   }
 
-  next(error);
-};
+  next(error)
+}
 
-app.use(errorHandler);
+app.use(errorHandler)
 
-const PORT = 3001;
+const PORT = 3001
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  console.log(`Server running on port ${PORT}`)
+})
 
 
