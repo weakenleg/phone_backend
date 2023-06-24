@@ -1,5 +1,2 @@
-curl -X DELETE http://localhost:3001/api/persons/
-
-
-
+curl -X DELETE http://localhost:3001/api/persons/64973f2e5d075e1776f16def
 # can not add two person at the same time

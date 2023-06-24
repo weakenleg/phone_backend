@@ -80,6 +80,18 @@
 
 //   response.status(204).end();
 // });
+// app.delete('/api/persons/:id', (req, res) => {
+//   const id = req.params.id;
+//   console.log(id)
+//   Person.findByIdAndRemove({ id })
+//     .then(() => {
+//       res.status(204).end();
+//     })
+//     .catch((error) => {
+//       console.log('Error deleting person:', error.message);
+//       res.status(500).send('Internal Server Error');
+//     });
+// });
 // app.post('/api/persons', (request, response) => {
 //   const { name, number } = request.body;
 
@@ -89,10 +101,10 @@
 //   }
 
 //   // Check if name already exists in the phonebook
-//   const existingPerson = persons.find((person) => person.name === name);
-//   if (existingPerson) {
-//     return response.status(400).json({ error: 'name must be unique' });
-//   }
+  // const existingPerson = persons.find((person) => person.name === name);
+  // if (existingPerson) {
+  //   return response.status(400).json({ error: 'name must be unique' });
+  // }
 
 //   const newPerson = {
 //     id: Math.floor(Math.random() * 1), // Generate a random ID
@@ -122,6 +134,7 @@ const mongoose = require('mongoose');
 const Person = require('./model/person');
 require('dotenv').config();
 
+const { Types } = mongoose;
 
 app.use(cors());
 app.use(express.static('build'));
@@ -134,7 +147,6 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
     console.log('Connected to MongoDB');
   })
   .catch((error) => {
-    console.log(process.env.MONGODB_URI)
     console.log('Error connecting to MongoDB:', error.message);
   });
 
@@ -143,7 +155,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-  Person.find({}) // Fetch all persons from the database
+  Person.find({})
     .then((persons) => {
       res.json(persons);
     })
@@ -153,26 +165,29 @@ app.get('/api/persons', (req, res) => {
     });
 });
 
-app.get('/info', (req, res) => {
-  Person.countDocuments({}, (error, count) => {
-    if (error) {
-      console.log('Error counting documents:', error.message);
-      res.status(500).send('Internal Server Error');
-    } else {
+app.get('/info', (req, res, next) => {
+  Person.countDocuments({})
+    .then((count) => {
       const infoHtml = `
         <p>Phonebook has info for ${count} people</p>
         <p>${new Date()}</p>
       `;
       res.send(infoHtml);
-    }
-  });
+    })
+    .catch(next);
 });
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
-app.get('/api/persons/:id', (req, res) => {
+
+app.get('/api/persons/:id', (req, res, next) => {
   const id = req.params.id;
-  Person.findById(id)
+  const _id = req.params._id;
+  console.log(_id)
+  console.log(id)
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+
+  Person.findOne({ id }) // Use findOne instead of findById
     .then((person) => {
       if (person) {
         res.json(person);
@@ -180,15 +195,21 @@ app.get('/api/persons/:id', (req, res) => {
         res.status(404).json({ error: 'Person not found' });
       }
     })
-    .catch((error) => {
-      console.log('Error fetching person:', error.message);
-      res.status(500).send('Internal Server Error');
-    });
+    .catch(next);
 });
+
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = req.params.id;
-  Person.findByIdAndRemove(id)
+  const _id = req.params._id;
+  console.log(_id)
+  console.log(id)
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+
+  Person.findOneAndRemove(id)
     .then(() => {
       res.status(204).end();
     })
@@ -199,39 +220,75 @@ app.delete('/api/persons/:id', (req, res) => {
 });
 
 
+app.put('/api/persons/:id', (req, res, next) => {
+  const id = req.params.id;
+  console.log('ID:', id); // Print the ID to the console
+  const { name, number } = req.body;
 
-app.post('/api/persons', (request, response) => {
-  const { name, number } = request.body;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
+  // const existingPerson = persons.find((person) => person.name === name);
+  // if (existingPerson) {
+  //   return response.status(400).json({ error: 'name must be unique' });
+  // }
 
-  // Check if name or number is missing
+  Person.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then(updatedPerson => {
+      res.json(updatedPerson)
+    })
+    .catch(next);
+});
+
+app.post('/api/persons', (req, res) => {
+  const { name, number } = req.body;
+
   if (!name || !number) {
-    return response.status(400).json({ error: 'name or number is missing' });
+    return res.status(400).json({ error: 'Name or number is missing' });
   }
 
-  // Check if name already exists in the phonebook
-  const existingPerson = persons.find((person) => person.name === name);
-  if (existingPerson) {
-    return response.status(400).json({ error: 'name must be unique' });
-  }
-
-  const newPerson = {
-    id: Math.floor(Math.random() * 1), // Generate a random ID
+  const newPerson = new Person({
+    id: new mongoose.Types.ObjectId(), // Generate a new ObjectId
     name,
     number,
-  };
+  });
 
-  // Add the new phonebook entry to the list of entries
-  persons.push(newPerson);
-
-  response.status(200).json(persons);
+  newPerson.save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => {
+      console.log('Error saving person:', error); // Print the error to the console
+      res.status(500).send('Internal Server Error');
+    });
 });
-  
-
-  
 
 
-app.use(unknownEndpoint)
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: 'Unknown endpoint' });
+};
+
+app.use(unknownEndpoint);
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return res.status(400).json({ error: 'Malformatted ID' });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
