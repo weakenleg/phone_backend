@@ -1,9 +1,5 @@
-POST https://phonebook-backend2-lhlb.onrender.com/api/persons
-Content-Type: application/json
+curl -X DELETE http://localhost:3001/api/persons/
 
-{
-  "name": "John Doe2",
-  "number": "1234567890"
-}
+
 
 # can not add two person at the same time
